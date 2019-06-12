@@ -1,9 +1,10 @@
-import { Component } from '@angular/core';
+import {Component, NgZone} from '@angular/core';
 import { NavController } from 'ionic-angular';
 
 // START
 import { FileChooser } from '@ionic-native/file-chooser';
 import { FTP } from '@ionic-native/ftp';
+import { FilePath } from '@ionic-native/file-path';
 
 // END
 
@@ -13,10 +14,16 @@ import { FTP } from '@ionic-native/ftp';
 })
 export class HomePage {
 
+	FTP_PATH_NAME="/m/"
+
+	progress: number;
 	connected: boolean;
+	logg: string;
   constructor(public navCtrl: NavController,
+  	private zone: NgZone,
   	private fileChooser: FileChooser,
-  	private ftp: FTP) {}
+  	private ftp: FTP,
+  	private filePath: FilePath) {}
 
 	openFileSelector(){
     this.fileChooser.open()
@@ -25,18 +32,21 @@ export class HomePage {
   }
 
   connect(){
-  	this.ftp.connect('ftp://ftp.dlptest.com/', 'dlpuser@dlptest.com', 'fLDScD4Ynth0p4OJ6bW6qCxjh')
+  	return this.ftp.connect('ftp.dlptest.com:21', 'dlpuser@dlptest.com', 'fLDScD4Ynth0p4OJ6bW6qCxjh');
+  }
+
+	connectButtonClicked(){
+  	this.connect()
   	.then((res: any) => {
   		this.connected = true;
   		this.log(res)
   	})
   	.catch((error: any) => {
-  		alert("error")
+  		alert("error" + JSON.stringify(error))
   		this.connected = false;
   		this.log(error)
   	});
   }
-
 
   disconnect(){
   	this.ftp.disconnect()
@@ -50,7 +60,53 @@ export class HomePage {
   	});
   }
 
+  upload(uri: any){
+  	this.log(uri);
+  	this.progress = 0;
+  	let filename = uri.substring(uri.lastIndexOf('/')+1);
+  	this.ftp.upload(uri, this.FTP_PATH_NAME + filename)
+  		.subscribe((p: any) => {
+  			// added a zone just to make sure progress is updated realtime in UI
+  			this.zone.run(() => {
+          this.progress = Math.round(p * 100);
+		  		this.log("Upload progress " + this.progress);
+		  		if(p == 1){
+		  			this.log("Completed");
+		  		}
+        });
+  	}, err => {
+        this.log(JSON.stringify(err));
+    });
+  }
+
+  uploadButtonClicked(){
+  	if(this.connected){
+	  	this.fileChooser.open()
+	      .then(uri => {
+	      	// need to convert application specific file URI to local file URI 
+	      	this.filePath.resolveNativePath(uri)
+						.then((filePath)=> {
+							this.upload(filePath);
+						}).catch((err) => {
+							this.log(JSON.stringify(err));
+						});
+	      })
+	      .catch(e => this.log(e));
+	  } else {
+	  	this.log("Not connected");
+	  }
+  }
+
+  download(){
+
+  }
+
+  downloadButtonClicked(){
+  	
+  }
+
   log(e){
+  	this.logg = this.logg + "\n" + e;
   	console.log(e);
   }
 }

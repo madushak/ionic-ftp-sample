@@ -8,9 +8,17 @@
 
 <ion-content padding>
   
-  <div (click)="openFileSelector()">asdas</div>
-  <button (click)="connect()" *ngIf="!connected">Connect</button>
+  <button (click)="connectButtonClicked()" *ngIf="!connected">Connect</button>
   <button (click)="disconnect()" *ngIf="connected">Disonnect</button>
-  {{connected}}
+
+  <div *ngIf="connected">
+  	  <div>Connected</div>
+	  <button (click)="uploadButtonClicked()">Upload</button>
+	  <button (click)="downloadButtonClicked()">Download</button>
+	 
+	  <div *ngIf="progress > 0">{{progress}}%</div>
+  </div>
+  
+  <textarea>{{logg}}</textarea>
 
 </ion-content>
