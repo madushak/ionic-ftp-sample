@@ -11,6 +11,7 @@
   <button (click)="connectButtonClicked()" *ngIf="!connected">Connect</button>
   <button (click)="disconnect()" *ngIf="connected">Disonnect</button>
 
+  <div *ngIf="connecting">Connecting</div>
   <div *ngIf="connected">
   	  <div>Connected</div>
 	  <button (click)="uploadButtonClicked()">Upload</button>

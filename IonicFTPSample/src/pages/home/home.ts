@@ -15,9 +15,13 @@ import { FilePath } from '@ionic-native/file-path';
 export class HomePage {
 
 	FTP_PATH_NAME="/m/"
+	FTP_HOST="ftp.dlptest.com:21"
+	FTP_USER="dlpuser@dlptest.com"
+	FTP_PASSWORD="fLDScD4Ynth0p4OJ6bW6qCxjh"
 
 	progress: number;
 	connected: boolean;
+	connecting: boolean;
 	logg: string;
   constructor(public navCtrl: NavController,
   	private zone: NgZone,
@@ -32,16 +36,19 @@ export class HomePage {
   }
 
   connect(){
-  	return this.ftp.connect('ftp.dlptest.com:21', 'dlpuser@dlptest.com', 'fLDScD4Ynth0p4OJ6bW6qCxjh');
+  	return this.ftp.connect(this.FTP_HOST, this.FTP_USER, this.FTP_PASSWORD);
   }
 
 	connectButtonClicked(){
+		this.connecting = true;
   	this.connect()
   	.then((res: any) => {
+  		this.connecting = false;
   		this.connected = true;
   		this.log(res)
   	})
   	.catch((error: any) => {
+  		this.connecting = false;
   		alert("error" + JSON.stringify(error))
   		this.connected = false;
   		this.log(error)
@@ -102,7 +109,7 @@ export class HomePage {
   }
 
   downloadButtonClicked(){
-  	
+
   }
 
   log(e){
