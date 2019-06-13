@@ -5,6 +5,9 @@ import { NavController } from 'ionic-angular';
 import { FileChooser } from '@ionic-native/file-chooser';
 import { FTP } from '@ionic-native/ftp';
 import { FilePath } from '@ionic-native/file-path';
+import { File } from '@ionic-native/file';
+import { AndroidPermissions } from '@ionic-native/android-permissions';
+
 
 // END
 
@@ -14,10 +17,13 @@ import { FilePath } from '@ionic-native/file-path';
 })
 export class HomePage {
 
-	FTP_PATH_NAME="/m/"
+	FTP_UPLOAD_PATH_NAME="/m/"
 	FTP_HOST="ftp.dlptest.com:21"
 	FTP_USER="dlpuser@dlptest.com"
 	FTP_PASSWORD="fLDScD4Ynth0p4OJ6bW6qCxjh"
+  FTP_DOWNLOAD_PATH="/m/"
+  FTP_DOWNLOAD_FILE="test"
+  DOWNLOAD_PATH=""
 
 	progress: number;
 	connected: boolean;
@@ -27,7 +33,24 @@ export class HomePage {
   	private zone: NgZone,
   	private fileChooser: FileChooser,
   	private ftp: FTP,
-  	private filePath: FilePath) {}
+  	private filePath: FilePath,
+    private file: File,
+    private androidPermissions: AndroidPermissions) {
+      this.storagePermissionCheck();
+  }
+
+  storagePermissionCheck(){
+    this.androidPermissions.checkPermission(this.androidPermissions.PERMISSION.WRITE_EXTERNAL_STORAGE).then(
+      result => {
+        if(!result.hasPermission){
+          this.androidPermissions.requestPermission(this.androidPermissions.PERMISSION.WRITE_EXTERNAL_STORAGE);
+        }
+      },
+      err => {
+        this.androidPermissions.requestPermission(this.androidPermissions.PERMISSION.WRITE_EXTERNAL_STORAGE);
+      }
+    );
+  }
 
 	openFileSelector(){
     this.fileChooser.open()
@@ -56,9 +79,9 @@ export class HomePage {
   }
 
   disconnect(){
+    this.connected = false;
   	this.ftp.disconnect()
   	.then((res: any) => {
-  		this.connected = false;
   		this.log(res)
   	})
   	.catch((error: any) => {
@@ -71,7 +94,7 @@ export class HomePage {
   	this.log(uri);
   	this.progress = 0;
   	let filename = uri.substring(uri.lastIndexOf('/')+1);
-  	this.ftp.upload(uri, this.FTP_PATH_NAME + filename)
+  	this.ftp.upload(uri, this.FTP_UPLOAD_PATH_NAME + filename)
   		.subscribe((p: any) => {
   			// added a zone just to make sure progress is updated realtime in UI
   			this.zone.run(() => {
@@ -105,11 +128,27 @@ export class HomePage {
   }
 
   download(){
-
+    this.progress = 0;
+    let localPath = this.file.externalRootDirectory + "/" + this.FTP_DOWNLOAD_FILE;
+    this.ftp.download(localPath, this.FTP_DOWNLOAD_PATH + "/" + this.FTP_DOWNLOAD_FILE)
+    .subscribe((p: any) => {
+        // added a zone just to make sure progress is updated realtime in UI
+        this.zone.run(() => {
+          this.progress = Math.round(p * 100);
+          this.log("Download progress " + this.progress);
+          if(p == 1){
+            this.log("Completed file " + localPath);
+          }
+        });
+    }, err => {
+        this.log(JSON.stringify(err));
+    });
   }
 
   downloadButtonClicked(){
 
+
+    this.download();
   }
 
   log(e){

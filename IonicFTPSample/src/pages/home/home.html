@@ -8,9 +8,11 @@
 
 <ion-content padding>
   
-  <button (click)="connectButtonClicked()" *ngIf="!connected">Connect</button>
-  <button (click)="disconnect()" *ngIf="connected">Disonnect</button>
+  <button class="big" (click)="connectButtonClicked()" *ngIf="!connected">Connect</button>
+  <button class="big" (click)="disconnect()" *ngIf="connected">Disonnect</button>
 
+  <hr/>
+  
   <div *ngIf="connecting">Connecting</div>
   <div *ngIf="connected">
   	  <div>Connected</div>
@@ -20,6 +22,10 @@
 	  <div *ngIf="progress > 0">{{progress}}%</div>
   </div>
   
-  <textarea>{{logg}}</textarea>
+  <hr/>
+  <button (click)="showLogs = !showLogs">Show logs</button>
+  <hr/>
+
+  <textarea *ngIf="showLogs">{{logg}}</textarea>
 
 </ion-content>

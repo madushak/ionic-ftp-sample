@@ -20,6 +20,7 @@
     "@angular/http": "5.0.0",
     "@angular/platform-browser": "5.0.0",
     "@angular/platform-browser-dynamic": "5.0.0",
+    "@ionic-native/android-permissions": "^4.20.0",
     "@ionic-native/core": "^4.11.0",
     "@ionic-native/file": "^4.20.0",
     "@ionic-native/file-chooser": "^4.20.0",
@@ -61,7 +62,9 @@
       "cordova-plugin-splashscreen": {},
       "cordova-plugin-ionic-webview": {},
       "cordova-plugin-filepath": {},
-      "cordova-plugin-android-support-v4": {}
+      "cordova-plugin-android-support-v4": {},
+      "cordova-plugin-file": {},
+      "cordova-plugin-android-permissions": {}
     },
     "platforms": [
       "browser",
