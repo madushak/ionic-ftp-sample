@@ -6,24 +6,26 @@
   </ion-navbar>
 </ion-header>
 
-<ion-content padding>
+<ion-content padding center text-center>
   
-  <button class="big" (click)="connectButtonClicked()" *ngIf="!connected">Connect</button>
-  <button class="big" (click)="disconnect()" *ngIf="connected">Disonnect</button>
+  <button class="large" (click)="connectButtonClicked()" *ngIf="!connected">Connect</button>
+  <button class="large" (click)="disconnectButtonClicked()" *ngIf="connected">Disonnect</button>
 
   <hr/>
   
   <div *ngIf="connecting">Connecting</div>
   <div *ngIf="connected">
   	  <div>Connected</div>
-	  <button (click)="uploadButtonClicked()">Upload</button>
-	  <button (click)="downloadButtonClicked()">Download</button>
+  	  <div *ngIf="uploading">Uploading</div>
+  	  <div *ngIf="downloading">Downloading</div>
+	  <button class="big" (click)="uploadButtonClicked()">Upload</button>
+	  <button class="big" (click)="downloadButtonClicked()">Download</button>
 	 
 	  <div *ngIf="progress > 0">{{progress}}%</div>
   </div>
   
   <hr/>
-  <button (click)="showLogs = !showLogs">Show logs</button>
+  <button class="big" (click)="showLogs = !showLogs">Show logs</button>
   <hr/>
 
   <textarea *ngIf="showLogs">{{logg}}</textarea>

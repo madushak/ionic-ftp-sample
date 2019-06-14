@@ -8,7 +8,7 @@ import { FilePath } from '@ionic-native/file-path';
 import { File } from '@ionic-native/file';
 import { AndroidPermissions } from '@ionic-native/android-permissions';
 
-
+import { environment } from '../../configs/environment';
 // END
 
 @Component({
@@ -17,18 +17,20 @@ import { AndroidPermissions } from '@ionic-native/android-permissions';
 })
 export class HomePage {
 
-	FTP_UPLOAD_PATH_NAME="/m/"
-	FTP_HOST="ftp.dlptest.com:21"
-	FTP_USER="dlpuser@dlptest.com"
-	FTP_PASSWORD="fLDScD4Ynth0p4OJ6bW6qCxjh"
-  FTP_DOWNLOAD_PATH="/m/"
-  FTP_DOWNLOAD_FILE="test"
-  DOWNLOAD_PATH=""
+	FTP_UPLOAD_PATH_NAME = environment.FTP_DOWNLOAD_PATH;
+	FTP_HOST =  environment.FTP_HOST;
+	FTP_USER = environment.FTP_USER;
+	FTP_PASSWORD = environment.FTP_PASSWORD;
+  FTP_DOWNLOAD_PATH = environment.FTP_DOWNLOAD_PATH;
+  FTP_DOWNLOAD_FILE = environment.FTP_DOWNLOAD_FILE;
+  DOWNLOAD_PATH = environment.DOWNLOAD_PATH;
 
 	progress: number;
 	connected: boolean;
 	connecting: boolean;
-	logg: string;
+  uploading: boolean;
+  downloading: boolean;
+	logg: string = "";
   constructor(public navCtrl: NavController,
   	private zone: NgZone,
   	private fileChooser: FileChooser,
@@ -54,8 +56,8 @@ export class HomePage {
 
 	openFileSelector(){
     this.fileChooser.open()
-      .then(uri => this.log(uri))
-      .catch(e => this.log(e));
+    .then(uri => this.log(uri))
+    .catch((error: any) => this.log(JSON.stringify(error)));
   }
 
   connect(){
@@ -63,6 +65,7 @@ export class HomePage {
   }
 
 	connectButtonClicked(){
+    this.log("Connect button clicked");
 		this.connecting = true;
   	this.connect()
   	.then((res: any) => {
@@ -72,40 +75,47 @@ export class HomePage {
   	})
   	.catch((error: any) => {
   		this.connecting = false;
-  		alert("error" + JSON.stringify(error))
+  		alert("Error" + JSON.stringify(error))
   		this.connected = false;
-  		this.log(error)
+  		this.log(JSON.stringify(error));
   	});
   }
 
   disconnect(){
+    return this.ftp.disconnect();
+  }
+
+  disconnectButtonClicked(){
+    this.log("Disconnect button clicked");
     this.connected = false;
-  	this.ftp.disconnect()
+  	this.disconnect()
   	.then((res: any) => {
-  		this.log(res)
+  		this.log(res);
   	})
   	.catch((error: any) => {
-  		alert("error")
-  		this.log(error)
-  	});
+      this.log(JSON.stringify(error));
+    });
   }
 
   upload(uri: any){
   	this.log(uri);
+    this.uploading = true;
   	this.progress = 0;
   	let filename = uri.substring(uri.lastIndexOf('/')+1);
   	this.ftp.upload(uri, this.FTP_UPLOAD_PATH_NAME + filename)
-  		.subscribe((p: any) => {
-  			// added a zone just to make sure progress is updated realtime in UI
-  			this.zone.run(() => {
-          this.progress = Math.round(p * 100);
-		  		this.log("Upload progress " + this.progress);
-		  		if(p == 1){
-		  			this.log("Completed");
-		  		}
-        });
-  	}, err => {
-        this.log(JSON.stringify(err));
+    .subscribe((p: any) => {
+			// added a zone just to make sure progress is updated realtime in UI
+			this.zone.run(() => {
+        this.progress = Math.round(p * 100);
+	  		this.log("Upload progress " + this.progress);
+	  		if(p == 1){
+	  			this.log("Completed");
+          this.uploading = false;
+	  		}
+      });
+  	}, (error: any) => {
+        this.log(JSON.stringify(error));
+        this.uploading = false;
     });
   }
 
@@ -117,20 +127,20 @@ export class HomePage {
 	      	this.filePath.resolveNativePath(uri)
 						.then((filePath)=> {
 							this.upload(filePath);
-						}).catch((err) => {
-							this.log(JSON.stringify(err));
-						});
+						})
+            .catch((error: any) => this.log(JSON.stringify(error)));
 	      })
-	      .catch(e => this.log(e));
+	      .catch((error: any) => this.log(error));
 	  } else {
 	  	this.log("Not connected");
 	  }
   }
 
   download(){
+    this.downloading = true;
     this.progress = 0;
-    let localPath = this.file.externalRootDirectory + "/" + this.FTP_DOWNLOAD_FILE;
-    this.ftp.download(localPath, this.FTP_DOWNLOAD_PATH + "/" + this.FTP_DOWNLOAD_FILE)
+    let localPath = this.file.externalRootDirectory + this.FTP_DOWNLOAD_FILE;
+    this.ftp.download(localPath, this.FTP_DOWNLOAD_PATH + this.FTP_DOWNLOAD_FILE)
     .subscribe((p: any) => {
         // added a zone just to make sure progress is updated realtime in UI
         this.zone.run(() => {
@@ -138,16 +148,16 @@ export class HomePage {
           this.log("Download progress " + this.progress);
           if(p == 1){
             this.log("Completed file " + localPath);
+            this.downloading = false;
           }
         });
-    }, err => {
-        this.log(JSON.stringify(err));
+    }, (error: any) => {
+        this.log(JSON.stringify(error));
+        this.downloading = false;
     });
   }
 
   downloadButtonClicked(){
-
-
     this.download();
   }
 
