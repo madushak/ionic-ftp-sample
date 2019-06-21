@@ -18,6 +18,8 @@
   	  <div>Connected</div>
   	  <div *ngIf="uploading">Uploading</div>
   	  <div *ngIf="downloading">Downloading</div>
+  	  <div *ngIf="checking">Checking</div>
+  	  <div *ngIf="not_found">Not found</div>
 	  <button class="big" (click)="uploadButtonClicked()">Upload</button>
 	  <button class="big" (click)="downloadButtonClicked()">Download</button>
 	 

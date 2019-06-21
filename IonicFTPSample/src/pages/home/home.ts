@@ -17,7 +17,7 @@ import { environment } from '../../configs/environment';
 })
 export class HomePage {
 
-	FTP_UPLOAD_PATH_NAME = environment.FTP_DOWNLOAD_PATH;
+	FTP_UPLOAD_PATH_NAME = environment.FTP_UPLOAD_PATH_NAME;
 	FTP_HOST =  environment.FTP_HOST;
 	FTP_USER = environment.FTP_USER;
 	FTP_PASSWORD = environment.FTP_PASSWORD;
@@ -30,6 +30,9 @@ export class HomePage {
 	connecting: boolean;
   uploading: boolean;
   downloading: boolean;
+  checking: boolean;
+  not_found: boolean;
+
 	logg: string = "";
   constructor(public navCtrl: NavController,
   	private zone: NgZone,
@@ -136,10 +139,37 @@ export class HomePage {
 	  }
   }
 
+  check_and_download(){
+    this.checking = true;
+    this.not_found = false;
+    this.ftp.ls(this.FTP_DOWNLOAD_PATH)
+    .then((list: any) => {
+        let found = false;
+        for(var i in list){
+          if(list[i].name == this.FTP_DOWNLOAD_FILE) found = true;
+        }
+
+        //perform the download only if file exists
+        if(found){
+           this.download();
+        }else{
+          this.not_found = true;
+          alert("File not found");
+        }
+
+        this.checking = false;
+    })
+    .catch((error: any) => {
+      this.checking = false;
+      alert(this.extract_ftp_errors(error));
+      this.log(JSON.stringify(error));
+    });
+  }
+
   download(){
     this.downloading = true;
     this.progress = 0;
-    let localPath = this.file.externalRootDirectory + this.FTP_DOWNLOAD_FILE;
+    let localPath = this.file.externalRootDirectory + this.DOWNLOAD_PATH + this.FTP_DOWNLOAD_FILE;
     this.ftp.download(localPath, this.FTP_DOWNLOAD_PATH + this.FTP_DOWNLOAD_FILE)
     .subscribe((p: any) => {
         // added a zone just to make sure progress is updated realtime in UI
@@ -153,16 +183,24 @@ export class HomePage {
         });
     }, (error: any) => {
         this.log(JSON.stringify(error));
+        alert(this.extract_ftp_errors(error));
         this.downloading = false;
     });
   }
 
   downloadButtonClicked(){
-    this.download();
+    this.check_and_download();
   }
 
   log(e){
   	this.logg = this.logg + "\n" + e;
   	console.log(e);
+  }
+
+  extract_ftp_errors(str: string){
+    let x = str.split("message=");
+    if(x.length > 1){
+      return x[1].replace("]", "");
+    }
   }
 }
